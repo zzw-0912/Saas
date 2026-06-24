@@ -1,0 +1,624 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>登录 · FriendAuto</title>
+  <style>
+    /* ─── tokens — Contemporary design system ────────────────────────── */
+    :root {
+      --bg: #f5f8ff;
+      --surface: #ffffff;
+      --surface-warm: #eaf1ff;
+      --fg: #101828;
+      --fg-2: #344054;
+      --muted: #667085;
+      --meta: #2563eb;
+      --border: #d7e0ef;
+      --border-soft: #edf2f8;
+      --accent: #2563eb;
+      --accent-on: #ffffff;
+      --accent-hover: color-mix(in oklab, var(--accent), black 8%);
+      --accent-active: color-mix(in oklab, var(--accent), black 14%);
+      --success: #16a34a;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --font-display: Inter, system-ui, sans-serif;
+      --font-body: Inter, system-ui, sans-serif;
+      --font-mono: "SF Mono", ui-monospace, Menlo, monospace;
+      --text-xs: 12px;
+      --text-sm: 14px;
+      --text-base: 16px;
+      --text-lg: 18px;
+      --text-xl: 24px;
+      --text-2xl: 36px;
+      --text-3xl: 54px;
+      --radius-sm: 10px;
+      --radius-md: 16px;
+      --radius-lg: 24px;
+      --radius-pill: 9999px;
+      --elev-raised: 0 20px 52px rgba(16, 24, 40, 0.11);
+      --focus-ring: 0 0 0 4px rgba(37, 99, 235, 0.22);
+      --motion-fast: 150ms;
+      --motion-base: 240ms;
+      --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    /* ─── reset & base ────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; height: 100%; }
+    body {
+      margin: 0; height: 100%;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font-body);
+      font-size: var(--text-base);
+      line-height: 1.55;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      display: flex; align-items: center; justify-content: center;
+      user-select: none;
+    }
+    a { color: var(--fg-2); text-decoration: none; font-weight: 500; }
+    a:hover { text-decoration: underline; }
+    button { font: inherit; cursor: pointer; border: 0; outline: 0; }
+    p { text-wrap: pretty; margin: 0; }
+    input { font: inherit; outline: 0; }
+
+    /* ─── desktop window chrome ───────────────────────────────────────── */
+    .app-window {
+      width: 900px; height: 580px;
+      background: var(--surface);
+      border-radius: var(--radius-md);
+      box-shadow: var(--elev-raised), 0 0 0 1px color-mix(in oklab, var(--fg) 6%, transparent);
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+    .titlebar {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 42px; padding: 0 16px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border-soft);
+      flex-shrink: 0;
+    }
+    .titlebar-left {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .titlebar-logo {
+      width: 20px; height: 20px;
+      background: var(--fg-2);
+      border-radius: 5px;
+      display: grid; place-items: center;
+      color: var(--accent-on);
+      font-size: 11px; font-weight: 700;
+    }
+    .titlebar-title {
+      font-size: var(--text-sm);
+      font-weight: 500;
+      color: var(--fg-2);
+    }
+    .titlebar-controls {
+      display: flex; gap: 2px;
+    }
+    .win-btn {
+      width: 36px; height: 28px;
+      display: grid; place-items: center;
+      background: transparent;
+      border-radius: 6px;
+      color: var(--muted);
+      transition: background var(--motion-fast) var(--ease-standard);
+    }
+    .win-btn:hover { background: var(--border-soft); color: var(--fg); }
+    .win-btn.close:hover { background: var(--danger); color: var(--accent-on); }
+    .win-btn svg { width: 12px; height: 12px; }
+
+    /* ─── main content split ──────────────────────────────────────────── */
+    .app-body { display: flex; flex: 1; min-height: 0; }
+
+    /* ─── left branding panel ─────────────────────────────────────────── */
+    .brand-panel {
+      width: 380px; flex-shrink: 0;
+      background: linear-gradient(160deg, color-mix(in oklab, var(--accent) 6%, var(--surface-warm)), color-mix(in oklab, var(--accent) 14%, var(--bg)));
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 48px 40px;
+      position: relative;
+      overflow: hidden;
+    }
+    .brand-panel::before {
+      content: '';
+      position: absolute; top: -80px; right: -80px;
+      width: 260px; height: 260px;
+      background: color-mix(in oklab, var(--accent) 8%, transparent);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .brand-panel::after {
+      content: '';
+      position: absolute; bottom: -120px; left: -60px;
+      width: 320px; height: 320px;
+      background: color-mix(in oklab, var(--accent) 4%, transparent);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .brand-content { position: relative; z-index: 1; text-align: center; }
+    .brand-icon {
+      width: 64px; height: 64px;
+      background: var(--accent);
+      border-radius: 18px;
+      display: grid; place-items: center;
+      margin: 0 auto 24px;
+      box-shadow: 0 12px 32px color-mix(in oklab, var(--accent) 28%, transparent);
+    }
+    .brand-icon svg { width: 32px; height: 32px; color: var(--accent-on); }
+    .brand-name {
+      font-family: var(--font-display);
+      font-size: 28px; font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--fg);
+      margin-bottom: 8px;
+    }
+    .brand-tagline {
+      font-size: var(--text-sm);
+      color: var(--muted);
+      max-width: 24ch;
+      line-height: 1.6;
+    }
+    .brand-features {
+      margin-top: 40px;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .brand-feat {
+      display: flex; align-items: center; gap: 10px;
+      font-size: var(--text-sm);
+      color: var(--fg-2);
+    }
+    .brand-feat .feat-dot {
+      width: 7px; height: 7px;
+      background: var(--muted);
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ─── right auth panel ────────────────────────────────────────────── */
+    .auth-panel {
+      flex: 1;
+      display: flex; flex-direction: column;
+      justify-content: center;
+      padding: 48px 56px;
+      min-width: 0;
+    }
+
+    /* ─── tab switcher ────────────────────────────────────────────────── */
+    .auth-tabs {
+      display: flex; gap: 28px;
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--border-soft);
+      padding-bottom: 14px;
+    }
+    .auth-tab {
+      font-size: var(--text-base);
+      font-weight: 500;
+      color: var(--muted);
+      background: none;
+      padding: 0 0 8px;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -15px;
+      transition: color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard);
+    }
+    .auth-tab.active {
+      color: var(--fg);
+      border-bottom-color: var(--fg);
+    }
+    .auth-tab:hover { color: var(--fg); }
+
+    /* ─── form area ───────────────────────────────────────────────────── */
+    .auth-form { display: none; flex-direction: column; gap: 20px; }
+    .auth-form.visible { display: flex; }
+    .auth-form h2 {
+      font-family: var(--font-display);
+      font-size: var(--text-xl);
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      margin: 0 0 4px;
+    }
+    .auth-form .form-sub {
+      font-size: var(--text-sm);
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    /* ─── field ───────────────────────────────────────────────────────── */
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label {
+      font-size: var(--text-sm);
+      font-weight: 500;
+      color: var(--fg-2);
+    }
+    .input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      color: var(--fg);
+      font-size: var(--text-base);
+      transition: border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard);
+    }
+    .input:focus {
+      border-color: var(--fg-2);
+      box-shadow: var(--focus-ring);
+    }
+    .input::placeholder { color: color-mix(in oklab, var(--muted) 60%, transparent); }
+
+    /* ─── code row ────────────────────────────────────────────────────── */
+    .code-row { display: flex; gap: 10px; align-items: flex-end; }
+    .code-row .field { flex: 1; }
+    .btn-send {
+      flex-shrink: 0;
+      padding: 10px 16px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--fg-2);
+      font-size: var(--text-sm);
+      font-weight: 500;
+      white-space: nowrap;
+      transition: background var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard);
+    }
+    .btn-send:hover:not(:disabled) {
+      background: color-mix(in oklab, var(--fg-2) 6%, transparent);
+      border-color: var(--fg-2);
+    }
+    .btn-send:disabled {
+      color: var(--muted);
+      border-color: var(--border-soft);
+      cursor: not-allowed;
+    }
+
+    /* ─── primary action button ───────────────────────────────────────── */
+    .btn-primary {
+      width: 100%;
+      padding: 12px 24px;
+      background: var(--accent);
+      color: var(--accent-on);
+      font-size: var(--text-base);
+      font-weight: 600;
+      letter-spacing: -0.005em;
+      border-radius: var(--radius-sm);
+      transition: background var(--motion-fast) var(--ease-standard), transform 0.05s ease;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-primary:active { transform: translateY(1px); background: var(--accent-active); }
+    .btn-primary:disabled {
+      background: color-mix(in oklab, var(--accent) 30%, transparent);
+      cursor: not-allowed;
+    }
+
+    /* ─── checkbox row ────────────────────────────────────────────────── */
+    .check-row {
+      display: flex; align-items: center; gap: 8px;
+      font-size: var(--text-sm);
+      color: var(--fg-2);
+    }
+    .check-row input[type="checkbox"] {
+      width: 16px; height: 16px;
+      accent-color: var(--fg-2);
+      cursor: pointer;
+    }
+
+    /* ─── form footer links ───────────────────────────────────────────── */
+    .form-footer {
+      text-align: center;
+      font-size: var(--text-sm);
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .form-footer a { font-weight: 500; }
+
+    /* ─── toast ───────────────────────────────────────────────────────── */
+    .toast {
+      position: fixed; top: 24px; left: 50%; transform: translateX(-50%);
+      padding: 10px 20px;
+      background: var(--fg);
+      color: var(--accent-on);
+      border-radius: var(--radius-sm);
+      font-size: var(--text-sm);
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--motion-base) var(--ease-standard);
+    }
+    .toast.show { opacity: 1; }
+
+    /* ─── spinner inside button ───────────────────────────────────────── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid color-mix(in oklab, var(--accent-on) 30%, transparent);
+      border-top-color: var(--accent-on);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Desktop App Window -->
+  <div class="app-window" data-od-id="app-window">
+    <!-- Title Bar -->
+    <div class="titlebar" data-od-id="titlebar">
+      <div class="titlebar-left">
+        <div class="titlebar-logo">F</div>
+        <span class="titlebar-title">FriendAuto</span>
+      </div>
+      <div class="titlebar-controls">
+        <button class="win-btn" aria-label="最小化">
+          <svg viewBox="0 0 12 12"><rect x="1" y="5.5" width="10" height="1" fill="currentColor"/></svg>
+        </button>
+        <button class="win-btn" aria-label="最大化">
+          <svg viewBox="0 0 12 12"><rect x="1.5" y="1.5" width="9" height="9" rx="0.5" fill="none" stroke="currentColor" stroke-width="1"/></svg>
+        </button>
+        <button class="win-btn close" aria-label="关闭">
+          <svg viewBox="0 0 12 12"><path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="app-body" data-od-id="app-body">
+      <!-- Left Branding -->
+      <div class="brand-panel" data-od-id="brand-panel">
+        <div class="brand-content">
+          <div class="brand-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="12" cy="8" r="4"/>
+              <path d="M6 20v-2a6 6 0 0 1 10.5-3.3"/>
+              <path d="M18 20v-2a3 3 0 0 0-1.5-2.6"/>
+              <path d="M20 14h2v6h-6v-2h3l-2.5-3"/>
+            </svg>
+          </div>
+          <div class="brand-name">FriendAuto</div>
+          <p class="brand-tagline">智能微信好友管理，让每一次连接都简单高效</p>
+          <div class="brand-features">
+            <div class="brand-feat"><span class="feat-dot"></span>每日自动添加好友任务</div>
+            <div class="brand-feat"><span class="feat-dot"></span>智能标签分组管理</div>
+            <div class="brand-feat"><span class="feat-dot"></span>自定义打招呼语</div>
+            <div class="brand-feat"><span class="feat-dot"></span>实时任务进度追踪</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Auth Panel -->
+      <div class="auth-panel" data-od-id="auth-panel">
+        <!-- Tab Switcher -->
+        <nav class="auth-tabs">
+          <button class="auth-tab active" data-tab="login">登录</button>
+          <button class="auth-tab" data-tab="register">注册</button>
+          <button class="auth-tab" data-tab="reset">找回账号</button>
+        </nav>
+
+        <!-- Login Form -->
+        <form class="auth-form visible" id="form-login" autocomplete="off">
+          <h2>欢迎回来</h2>
+          <p class="form-sub">输入邮箱获取验证码，即可登录</p>
+
+          <div class="field">
+            <label>邮箱地址</label>
+            <input class="input" type="email" placeholder="your@email.com" id="login-email" required />
+          </div>
+
+          <div class="code-row">
+            <div class="field">
+              <label>验证码</label>
+              <input class="input" type="text" placeholder="6 位验证码" maxlength="6" id="login-code" inputmode="numeric" autocomplete="off" />
+            </div>
+            <button type="button" class="btn-send" id="login-send-btn" style="margin-top:26px">发送验证码</button>
+          </div>
+
+          <div class="check-row">
+            <input type="checkbox" id="login-remember" />
+            <label for="login-remember">记住我，下次自动登录</label>
+          </div>
+
+          <button type="submit" class="btn-primary" id="login-submit">登 录</button>
+          <p class="form-footer">还没有账号？<a href="#" data-goto="register">立即注册</a></p>
+        </form>
+
+        <!-- Register Form -->
+        <form class="auth-form" id="form-register" autocomplete="off">
+          <h2>创建账号</h2>
+          <p class="form-sub">使用邮箱注册，验证后即可开始使用</p>
+
+          <div class="field">
+            <label>邮箱地址</label>
+            <input class="input" type="email" placeholder="your@email.com" id="register-email" required />
+          </div>
+
+          <div class="code-row">
+            <div class="field">
+              <label>验证码</label>
+              <input class="input" type="text" placeholder="6 位验证码" maxlength="6" id="register-code" inputmode="numeric" autocomplete="off" />
+            </div>
+            <button type="button" class="btn-send" id="register-send-btn" style="margin-top:26px">发送验证码</button>
+          </div>
+
+          <div class="check-row">
+            <input type="checkbox" id="register-agree" />
+            <label for="register-agree">我已阅读并同意</label>
+            <a href="#">《用户协议》</a><span>和</span><a href="#">《隐私政策》</a>
+          </div>
+
+          <button type="submit" class="btn-primary" id="register-submit">注 册</button>
+          <p class="form-footer">已有账号？<a href="#" data-goto="login">立即登录</a></p>
+        </form>
+
+        <!-- Account Recovery (passwordless: verify email to regain access) -->
+        <form class="auth-form" id="form-reset" autocomplete="off">
+          <h2>找回账号</h2>
+          <p class="form-sub">通过邮箱验证重新获取账号访问权限</p>
+
+          <div class="field">
+            <label>注册邮箱</label>
+            <input class="input" type="email" placeholder="your@email.com" id="reset-email" required />
+          </div>
+
+          <div class="code-row">
+            <div class="field">
+              <label>验证码</label>
+              <input class="input" type="text" placeholder="6 位验证码" maxlength="6" id="reset-code" inputmode="numeric" autocomplete="off" />
+            </div>
+            <button type="button" class="btn-send" id="reset-send-btn" style="margin-top:26px">发送验证码</button>
+          </div>
+
+          <button type="submit" class="btn-primary" id="reset-submit">验证并登录</button>
+          <p class="form-footer"><a href="#" data-goto="login">返回登录</a></p>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ─── Tab switching ───────────────────────────────────────────────────
+    const tabs = document.querySelectorAll('.auth-tab');
+    const forms = document.querySelectorAll('.auth-form');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const target = tab.dataset.tab;
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        forms.forEach(f => f.classList.remove('visible'));
+        document.getElementById('form-' + target).classList.add('visible');
+      });
+    });
+
+    // Internal links for tab switching
+    document.querySelectorAll('[data-goto]').forEach(link => {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        const target = link.dataset.goto;
+        tabs.forEach(t => t.classList.remove('active'));
+        document.querySelector('.auth-tab[data-tab="' + target + '"]').classList.add('active');
+        forms.forEach(f => f.classList.remove('visible'));
+        document.getElementById('form-' + target).classList.add('visible');
+      });
+    });
+
+    // ─── Toast ───────────────────────────────────────────────────────────
+    let toastTimer;
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function() { el.classList.remove('show'); }, 2400);
+    }
+
+    // ─── Send code countdown ─────────────────────────────────────────────
+    function setupSendCode(btnId, emailId) {
+      var btn = document.getElementById(btnId);
+      var countdown = 0;
+      var timer = null;
+      var originalText = btn.textContent;
+
+      btn.addEventListener('click', function() {
+        var email = document.getElementById(emailId).value.trim();
+        if (!email) { showToast('请先输入邮箱地址'); return; }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast('请输入有效的邮箱地址'); return; }
+
+        btn.disabled = true;
+        countdown = 60;
+        btn.textContent = countdown + 's 后重发';
+        timer = setInterval(function() {
+          countdown--;
+          if (countdown <= 0) {
+            clearInterval(timer);
+            btn.disabled = false;
+            btn.textContent = originalText;
+          } else {
+            btn.textContent = countdown + 's 后重发';
+          }
+        }, 1000);
+      });
+    }
+
+    setupSendCode('login-send-btn', 'login-email');
+    setupSendCode('register-send-btn', 'register-email');
+    setupSendCode('reset-send-btn', 'reset-email');
+
+    // ─── Form submit handlers ────────────────────────────────────────────
+    document.getElementById('form-login').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var email = document.getElementById('login-email').value.trim();
+      var code = document.getElementById('login-code').value.trim();
+      if (!email) { showToast('请输入邮箱地址'); return; }
+      if (!code || code.length < 6) { showToast('请输入 6 位验证码'); return; }
+      var remember = document.getElementById('login-remember').checked;
+      var btn = document.getElementById('login-submit');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> 登录中…';
+      setTimeout(function() {
+        btn.disabled = false;
+        btn.textContent = '登 录';
+        showToast(remember ? '登录成功，下次将自动登录' : '登录成功');
+      }, 1500);
+    });
+
+    document.getElementById('form-register').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var email = document.getElementById('register-email').value.trim();
+      var code = document.getElementById('register-code').value.trim();
+      var agree = document.getElementById('register-agree').checked;
+      if (!email) { showToast('请输入邮箱地址'); return; }
+      if (!code || code.length < 6) { showToast('请输入 6 位验证码'); return; }
+      if (!agree) { showToast('请先阅读并同意用户协议和隐私政策'); return; }
+      var btn = document.getElementById('register-submit');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> 注册中…';
+      setTimeout(function() {
+        btn.disabled = false;
+        btn.textContent = '注 册';
+        showToast('注册成功，即将自动登录');
+      }, 1500);
+    });
+
+    document.getElementById('form-reset').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var email = document.getElementById('reset-email').value.trim();
+      var code = document.getElementById('reset-code').value.trim();
+      if (!email) { showToast('请输入邮箱地址'); return; }
+      if (!code || code.length < 6) { showToast('请输入 6 位验证码'); return; }
+      var btn = document.getElementById('reset-submit');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> 验证中…';
+      setTimeout(function() {
+        btn.disabled = false;
+        btn.textContent = '验证并登录';
+        showToast('验证成功，正在登录');
+        document.querySelector('.auth-tab[data-tab="login"]').click();
+      }, 1500);
+    });
+
+    // ─── Numeric input restriction ───────────────────────────────────────
+    document.querySelectorAll('input[inputmode="numeric"]').forEach(function(input) {
+      input.addEventListener('input', function() {
+        input.value = input.value.replace(/[^0-9]/g, '').slice(0, 6);
+      });
+    });
+
+    // ─── Window control stubs ────────────────────────────────────────────
+    document.querySelectorAll('.win-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        if (btn.classList.contains('close')) {
+          showToast('FriendAuto 已关闭');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
